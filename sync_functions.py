@@ -93,7 +93,7 @@ def download_from_rm(entity, folder):
     with zipfile.ZipFile(file_path, "r") as zf:
         zf.extractall(unzip_path)
 
-    remarks.run_remarks(unzip_path, temp_path)
+    remarks.run_remarks(str(unzip_path), temp_path)
     logging.info("PDF rendered")
     pdf = (temp_path / f"{entity} _remarks.pdf")
     pdf = pdf.rename(pdf.with_stem(f"{entity}"))
