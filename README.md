@@ -7,18 +7,22 @@ It relies on both Zotero's and reMarkable's cloud APIs for Python. This means
 sync must be enabled in Zotero to use this program. Both Zotero's storage and external WebDAV storage is supported, 
 although Zotero's own cloud support is largely untested. Testing and bug reports/pull requests are highly appreciated.
 
-## Usage 
+## Usage
+
+The workflow starts at Zotero. To pick which attachment to sync, add the `to_sync` tag to the entry.
+
+When you run the script, these files will be synced to your "unread" folder on the reMarkable.
+
+Once you're done reading and/or annotating, move the notebook from "unread" to "read" on your tablet.
+
+Now, when you run the script again, your annotations will be synced back to zotero.
 
 ### How it works
 
-The program makes use of Zotero's tag system to determine which files should be processed.
 To designate attachments that should be synced, add the tag "to_sync" to the entry.
 
 After the files are synced, this tag is automatically removed and set to "synced".
 Do not remove these tags as they are used to determine which files should be synced back.
-
-On the reMarkable, the program uses folders to keep track of files. ~~Unfortunately, there
-is no tag system on reMarkable, so that is the best way I could come up with.~~ Although there now is a tag system, this is – as far as I am aware of – not yet supported by third party API implementations. So for now, the folder approach remains the easiest. This might change in the future. You can specify the folder names during setup.
 
 The program uses [remarks](https://github.com/Scrybbling-together/remarks.git) to render files from ReMarkable and therefore has support both for annotations and smart highlights. Colors are supported.
 

@@ -11,6 +11,7 @@ logger.addHandler(logging.StreamHandler())
 logger.addHandler(logging.FileHandler(filename="sync.log"))
 
 def push(zot, webdav, folders):
+    logger.info("Syncing from Zotero to reMarkable")
     sync_items = zot.items(tag="to_sync")
     if sync_items:
         logger.info(f"Found {len(sync_items)} PDF attachments on the zotero to sync...")
@@ -19,14 +20,16 @@ def push(zot, webdav, folders):
                 sync_to_rm_webdav(item, zot, webdav, folders)
             else:
                 sync_to_rm(item, zot, folders)
+        zot.delete_tags("to_sync")
     else:
-        logger.info("No PDF attachments to sync, all clear :)")
-    zot.delete_tags("to_sync")
+        logger.info("Nothing to sync from Zotero")
 
 
 def pull(zot, webdav, read_folder):
+    logger.info("Syncing from reMarkable to Zotero")
     files_list = rmapi.get_files(read_folder)
     if files_list:
+        logger.info(f"There are {len(files_list)} files to download from the reMarkable")
         for entity in tqdm(files_list):
             pdf_name = download_from_rm(entity, read_folder)
             if webdav:
@@ -34,16 +37,15 @@ def pull(zot, webdav, read_folder):
             else:
                 zotero_upload(pdf_name, zot)
     else:
-        logger.info("No files to pull found")
+        logger.info("No files ")
 
 
 def main(argv):
     config_path = Path.cwd() / "config.yml"
-    if config_path.exists():
-        zot, webdav, folders = load_config("config.yml")
-    else:
+    if not config_path.exists():
         write_config("config.yml")
-        zot, webdav, folders = load_config("config.yml")
+
+    zot, webdav, folders = load_config("config.yml")
     read_folder = f"/Zotero/{folders['read']}/"
     
     try:
@@ -52,29 +54,23 @@ def main(argv):
         logger.error("No argument recognized")
         sys.exit()
 
+    if not opts:
+        opts = [["-m", "both"]]
+
     try:
         for opt, arg in opts:
             if opt == "-m":
                 if arg == "push":
                     # Only sync files from Zotero to reMarkable
-                    logger.info("Pushing...")
                     push(zot, webdav, folders)
-
                 elif arg == "pull":
                     # Only get files from ReMarkable and upload to Zotero
-                    logger.info("Pulling...")
                     pull(zot, webdav, read_folder)
-
                 elif arg == "both":
-                    # Do both
-                    logger.info("Do both...")
                     # Upload...
                     push(zot, webdav, folders)
-
                     # ...and download, add highlighting and sync to Zotero.
-
                     pull(zot, webdav, read_folder)
-
                 else:
                     logger.error("Invalid argument")
                     sys.exit()

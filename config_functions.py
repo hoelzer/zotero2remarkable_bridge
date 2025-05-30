@@ -1,13 +1,18 @@
+# config_functions.py
+import logging
+
 import yaml
 from pyzotero import zotero
 from webdav3.client import Client as wdClient
+
+logger = logging.getLogger("zotero_rM_bridge.config")
 
 def load_config(config_file):
     with open(config_file, "r") as stream:
         try:
             config_dict = yaml.safe_load(stream)
         except yaml.YAMLError as exc:
-            print(exc)
+            logger.exception(exc)
     zot = zotero.Zotero(config_dict["LIBRARY_ID"], config_dict["LIBRARY_TYPE"], config_dict["API_KEY"])
     folders = {"unread": config_dict["UNREAD_FOLDER"], "read": config_dict["READ_FOLDER"]}
     if config_dict["USE_WEBDAV"] == "True":
@@ -42,5 +47,5 @@ def write_config(file_name):
 
     with open(file_name, "w") as file:
         yaml.dump(config_data, file)
-    print(f"Config written to {file_name}\n If something went wrong, please edit config manually.")
+    logger.info(f"Config written to {file_name}\n If something went wrong, please edit config manually.")
 

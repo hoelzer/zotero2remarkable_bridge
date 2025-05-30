@@ -1,17 +1,18 @@
+# rmapi_shim.py
 import os
 import subprocess
 import json
 import logging
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("zotero_rM_bridge.rmapi")
 
 BASE_DIR = os.path.abspath(os.path.join(__file__, '../'))
 rmapi_location = os.path.join(BASE_DIR, "rmapi")
-print(f"rmapi location={rmapi_location}")
+
 
 
 def check_rmapi():
-    check = subprocess.run([rmapi_location, "ls"])
+    check = subprocess.run([rmapi_location, "ls"], capture_output=True, text=True)
     logger.info(check.stdout)
     logger.error(check.stderr)
     return check.returncode == 0
@@ -21,7 +22,7 @@ def get_files(folder):
     # Get all files from a specific folder. Output is sanitized and subfolders are excluded
     files = subprocess.run([rmapi_location, "ls", folder], capture_output=True, text=True)
     logger.info(files.stdout)
-    logging.error(files.stderr)
+    logger.error(files.stderr)
     if files.returncode == 0:
         files_list = files.stdout.split("\n")
         files_list_new = []
@@ -35,10 +36,10 @@ def get_files(folder):
 
 def download_file(file_path, working_dir):
     # Downloads a file (consisting of a zip file) to a specified directory
-    downloader = subprocess.run([rmapi_location, "geta", file_path], cwd=working_dir)
+    downloader = subprocess.run([rmapi_location, "get", file_path], cwd=working_dir, capture_output=True, text=True)
     logger.info(downloader.stdout)
     logger.error(downloader.stderr)
-    return downloader.returncode
+    return downloader.returncode == 0
 
 
 def get_metadata(file_path):
@@ -58,7 +59,7 @@ def get_metadata(file_path):
 
 def upload_file(file_path, target_folder):
     # Upload a file to its destination folder
-    uploader = subprocess.run([rmapi_location, "put", file_path, target_folder])
+    uploader = subprocess.run([rmapi_location, "put", file_path, target_folder], capture_output=True, text=True)
     logger.info(uploader.stdout)
     logger.error(uploader.stderr)
     return uploader.returncode == 0

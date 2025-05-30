@@ -1,3 +1,4 @@
+# sync_functions.py
 import logging
 import os
 import zipfile
@@ -7,13 +8,11 @@ import rmapi_shim as rmapi
 import remarks
 from pathlib import Path
 from shutil import rmtree
-from pyzotero import zotero
-from webdav3.client import Client as wdClient
 from time import sleep
 from datetime import datetime
 
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("zotero_rM_bridge.sync_functions")
 
 def sync_to_rm(item, zot, folders):
     temp_path = Path(tempfile.gettempdir())
@@ -81,7 +80,7 @@ def sync_to_rm_webdav(item, zot, webdav, folders):
 def download_from_rm(entity, folder):
     temp_path = Path(tempfile.gettempdir())
     logger.info(f"Processing {entity}...")
-    zip_name = f"{entity}.zip"
+    zip_name = f"{entity}.rmdoc"
     file_path = temp_path / zip_name
     unzip_path = temp_path / f"{entity}-unzipped"
     download = rmapi.download_file(f"{folder}{entity}", str(temp_path))
@@ -107,11 +106,12 @@ def download_from_rm(entity, folder):
 
 
 def zotero_upload(pdf_name, zot):
-    for item in zot.items(tag="synced"):
+    items = zot.items(tag="synced")
+    for item in items:
         item_id = item["key"]
         for attachment in zot.children(item_id):
             if "filename" in attachment["data"] and attachment["data"]["filename"] == pdf_name:
-                #zot.delete_item(attachment)
+                zot.delete_item(attachment)
                 # Keeping the original seems to be the more sensible thing to do
                 new_pdf_name = pdf_name.with_stem(f"(Annot) {pdf_name.stem}")
                 pdf_name.rename(new_pdf_name)
@@ -128,6 +128,7 @@ def get_md5(pdf) -> None | str:
     if pdf.is_file():
         with open(pdf, "rb") as f:
             return hashlib.md5(f.read()).hexdigest()
+    return None
 
 
 def get_mtime() -> str:
@@ -208,7 +209,10 @@ def zotero_upload_webdav(pdf_name, zot, webdav):
                 (temp_path / attachment_zip).unlink()
                 (temp_path / propfile).unlink()
                 return pdf_name
-            
+            return None
+        return None
+    return None
+
 
 def get_sync_status(zot):
     read_list = []
