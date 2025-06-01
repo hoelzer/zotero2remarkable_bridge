@@ -111,9 +111,7 @@ def zotero_upload(pdf_name, zot):
         item_id = item["key"]
         for attachment in zot.children(item_id):
             if "filename" in attachment["data"] and attachment["data"]["filename"] == pdf_name:
-                zot.delete_item(attachment)
-                # Keeping the original seems to be the more sensible thing to do
-                new_pdf_name = pdf_name.with_stem(f"(Annot) {pdf_name.stem}")
+                new_pdf_name = Path(pdf_name).with_stem(f"(Annotated) {pdf_name.stem}")
                 pdf_name.rename(new_pdf_name)
                 upload = zot.attachment_simple([new_pdf_name], item_id)                
                 
