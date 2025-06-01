@@ -26,41 +26,41 @@ Do not remove these tags as they are used to determine which files should be syn
 
 The program uses [remarks](https://github.com/Scrybbling-together/remarks.git) to render files from ReMarkable and therefore has support both for annotations and smart highlights. Colors are supported.
 
-The program will preserve the original file and add the marked file as new attachment with "(Annot) " added in front of the file name.
-Entries that have been synced back will have the tag "read" added to them, so you can easily search for them.
+The program will preserve the original file and add the marked file as a new attachment with `(Annot) ` added in front of the file name.
+Entries that have been synced back will have the tag "read" added to them, so you can search for them.
 
 - Supports sync via the ReMarkable API
 
 ### Setup
 
-#### On reMarkable:
+#### On reMarkable
 
 - Create a folder named `Zotero` through the UI on your reMarkable. This folder must be on the top level of the file system and cannot be nested under other folders.
 - Create two folders inside the `Zotero` folder, one for your unread documents (this is where new files from Zotero will land) and your read documents (this is where the program looks for files to be synced back to Zotero). 
 
-#### On your PC:
+#### On your PC
+
+1. First, you need to download this project: `git clone https://github.com/Scrybbling-together/zotero2remarkable_bridge.git`
+
+##### Dependencies
+
+1. Next, make sure you have [poetry](https://python-poetry.org/) installed, if you're using nix, this is done automatically for you. If not, you can [install it here](https://python-poetry.org/)
+2. You also need to have [rmapi](https://github.com/ddvk/rmapi/blob/master/README.md) set-up. Download the latest release, and run it once to set it up. Make sure to place it in the zotero2remarkable_bridge folder.
+3. Last, you need to install the python dependencies for zotero2remarkable_bridge as follows: `poetry install`
+
+##### Running
+
+Whenever you want to run, you need to activate the virtual environment and run the program:
 
 ```bash
-# 1. Clone repository to your computer:
-git clone https://github.com/Scrybbling-together/zotero2remarkable_bridge.git
-
-# Note: The program requires rmapi to be installed and properly configured. Please refer to rmapi's [Readme](https://github.com/ddvk/rmapi/blob/master/README.md) for instructions.
-
-# requires poetry to install
-# https://python-poetry.org/
-# 2. Add required packages through pip:
-poetry install
-poetry env use
-
-# 4. On Linux, run the program with:
+$(poetry env activate)
 python ./zotero2remarkable_bridge.py
-
 # At first run, it will guide you through creating a working
 # config. It will help you setup authentication with Zotero, WebDAV (optional), and
-# ReMarkable.
+# reMarkable.
 ```
 
-### Arguments
+##### Arguments
 
 The program accepts the following arguments:
 
