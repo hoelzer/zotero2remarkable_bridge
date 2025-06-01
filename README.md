@@ -46,14 +46,15 @@ Entries that have been synced back will have the tag "read" added to them, so yo
 
 1. Next, make sure you have [poetry](https://python-poetry.org/) installed, if you're using nix, this is done automatically for you. If not, you can [install it here](https://python-poetry.org/)
 2. You also need to have [rmapi](https://github.com/ddvk/rmapi/blob/master/README.md) set-up. Download the latest release, and run it once to set it up. Make sure to place it in the zotero2remarkable_bridge folder.
-3. Last, you need to install the python dependencies for zotero2remarkable_bridge as follows: `poetry install`
+3. Third, [inkscape](https://inkscape.org/) needs to be available on your PATH, which is used to render the reMarkable annotations to PDF by remarks.
+4. Last, you need to install the python dependencies for zotero2remarkable_bridge as follows: `poetry install`
 
 ##### Running
 
 Whenever you want to run, you need to activate the virtual environment and run the program:
 
 ```bash
-$(poetry env activate)
+source $(poetry env info --path)/bin/activate
 python ./zotero2remarkable_bridge.py
 # At first run, it will guide you through creating a working
 # config. It will help you setup authentication with Zotero, WebDAV (optional), and
