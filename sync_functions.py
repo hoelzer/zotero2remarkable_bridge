@@ -77,7 +77,7 @@ def sync_to_rm_webdav(item, zot, webdav, folders):
             logger.info("Found attachment, but it's not a PDF, skipping...")
 
 
-def download_from_rm(entity, folder):
+def download_from_rm(entity: str, folder: str) -> Path:
     temp_path = Path(tempfile.gettempdir())
     logger.info(f"Processing {entity}...")
     zip_name = f"{entity}.rmdoc"
@@ -102,16 +102,16 @@ def download_from_rm(entity, folder):
     file_path.unlink()
     rmtree(unzip_path)
 
-    return pdf_name
+    return Path(pdf_name)
 
 
-def zotero_upload(pdf_name, zot):
+def zotero_upload(pdf_name: Path, zot):
     items = zot.items(tag="synced")
     for item in items:
         item_id = item["key"]
         for attachment in zot.children(item_id):
             if "filename" in attachment["data"] and attachment["data"]["filename"] == pdf_name:
-                new_pdf_name = Path(pdf_name).with_stem(f"(Annotated) {pdf_name.stem}")
+                new_pdf_name = pdf_name.with_stem(f"(Annotated) {pdf_name.stem}")
                 pdf_name.rename(new_pdf_name)
                 upload = zot.attachment_simple([new_pdf_name], item_id)                
                 

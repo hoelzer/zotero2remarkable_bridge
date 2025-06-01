@@ -1,6 +1,8 @@
 #!/usr/bin/python3
 import sys
 import getopt
+
+from pyzotero.zotero import Zotero
 from tqdm import tqdm
 from config_functions import *
 from sync_functions import *
@@ -10,7 +12,7 @@ logger.setLevel(logging.INFO)
 logger.addHandler(logging.StreamHandler())
 logger.addHandler(logging.FileHandler(filename="sync.log"))
 
-def push(zot, webdav, folders):
+def push(zot: Zotero, webdav: bool, folders):
     logger.info("Syncing from Zotero to reMarkable")
     sync_items = zot.items(tag="to_sync")
     if sync_items:
@@ -25,7 +27,7 @@ def push(zot, webdav, folders):
         logger.info("Nothing to sync from Zotero")
 
 
-def pull(zot, webdav, read_folder):
+def pull(zot: Zotero, webdav: bool, read_folder: str):
     logger.info("Syncing from reMarkable to Zotero")
     files_list = rmapi.get_files(read_folder)
     if files_list:

@@ -3,6 +3,7 @@ import os
 import subprocess
 import json
 import logging
+from typing import List
 
 logger = logging.getLogger("zotero_rM_bridge.rmapi")
 
@@ -18,7 +19,7 @@ def check_rmapi():
     return check.returncode == 0
 
 
-def get_files(folder):
+def get_files(folder: str) -> bool | List[str]:
     # Get all files from a specific folder. Output is sanitized and subfolders are excluded
     files = subprocess.run([rmapi_location, "ls", folder], capture_output=True, text=True)
     logger.info(files.stdout)

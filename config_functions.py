@@ -21,7 +21,7 @@ def load_config(config_file):
             "webdav_login": config_dict["WEBDAV_USER"],
             "webdav_password": config_dict["WEBDAV_PWD"],
             "webdav_timeout": 300
-            }
+        }
         webdav = wdClient(webdav_data)
     else:
         webdav = False
