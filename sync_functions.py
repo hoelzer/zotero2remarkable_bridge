@@ -4,6 +4,9 @@ import os
 import zipfile
 import tempfile
 import hashlib
+
+from pyzotero.zotero import Zotero
+
 import rmapi_shim as rmapi
 import remarks
 from pathlib import Path
@@ -102,24 +105,31 @@ def download_from_rm(entity: str, folder: str) -> Path:
     file_path.unlink()
     rmtree(unzip_path)
 
-    return Path(pdf_name)
+    return Path(temp_path / pdf_name)
 
 
-def zotero_upload(pdf_name: Path, zot):
-    items = zot.items(tag="synced")
-    for item in items:
+def zotero_upload(pdf_path: Path, zot: Zotero):
+    annotated_name = f"(Annotated) {pdf_path.stem}{pdf_path.suffix}"
+    annotated_path = pdf_path.with_name(annotated_name)
+    logging.info(f"Have an annotated PDF {str(pdf_path)} to upload")
+
+    pdf_path.rename(str(annotated_path) + ".pdf")
+
+    for item in zot.items(tag="synced"):
         item_id = item["key"]
+        item_name = item.get("data", {}).get("title") or item_id
         for attachment in zot.children(item_id):
-            if "filename" in attachment["data"] and attachment["data"]["filename"] == pdf_name:
-                new_pdf_name = pdf_name.with_stem(f"(Annotated) {pdf_name.stem}")
-                pdf_name.rename(new_pdf_name)
-                upload = zot.attachment_simple([new_pdf_name], item_id)                
-                
-                if upload["success"]:
-                    logging.info(f"{pdf_name} uploaded to Zotero.")
+            if attachment["data"].get("filename", "") == pdf_path.name:
+                upload = zot.attachment_simple([str(annotated_path)], item_id)
+                if upload.get("success", False):
+                    logging.info(f"{pdf_path} attached to Zotero item '{item_name}'.")
+                    zot.add_tags(item, ["read", "annotated"])
                 else:
-                    logging.error(f"Upload of {pdf_name} failed...")
+                    logging.warning(f"Uploading {pdf_path} to Zotero item '{item_name}' failed")
                 return
+
+    logging.warning(f"Have an annotated PDF '{annotated_name}' to upload, but cannot find the appropriate item in Zotero")
+
 
 
 def get_md5(pdf) -> None | str:
