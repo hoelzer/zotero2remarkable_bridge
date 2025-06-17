@@ -4,23 +4,45 @@
   inputs = {
     nixpkgs.url = "nixpkgs/nixpkgs-unstable";
     flake-utils.url = "github:numtide/flake-utils";
+    poetry2nix.url = "github:nix-community/poetry2nix";
+    poetry2nix.inputs.nixpkgs.follows = "nixpkgs";
+    poetry2nix.inputs.flake-utils.follows = "flake-utils";
+    poetry2nix.inputs.systems.follows = "flake-utils/systems";
   };
 
-  outputs = { self, nixpkgs, flake-utils }:
-    flake-utils.lib.eachDefaultSystem (system:
+  outputs =
+    {
+      self,
+      nixpkgs,
+      flake-utils,
+      poetry2nix,
+    }:
+    flake-utils.lib.eachDefaultSystem (
+      system:
       let
-        pkgs = import nixpkgs { inherit system; };
-      in {
+        pkgs = nixpkgs.legacyPackages.${system};
+        p2n = poetry2nix.lib.mkPoetry2Nix { inherit pkgs; };
+      in
+      {
         devShells.default = pkgs.mkShell {
-          buildInputs = with pkgs; [ pkgs.zlib pkgs.libgcc.lib sqlite.dev python310 poetry inkscape zotero ];
-
-          LD_LIBRARY_PATH = pkgs.lib.makeLibraryPath [
-            pkgs.libgcc.lib pkgs.zlib
+          buildInputs = with pkgs; [
+            rmapi
           ];
-
-          shellHook = ''
-            source ./.venv/bin/activate
-          '';
         };
-      });
+        packages.default = p2n.mkPoetryApplication {
+          projectDir = ./.;
+          preferWheels = true;
+          overrides = p2n.overrides.withDefaults (
+            final: prev: {
+              remarks = prev.remarks.overridePythonAttrs (old: {
+                buildInputs = (old.buildInputs or [ ]) ++ [ prev.poetry-core ];
+              });
+              rmc = prev.rmc.overridePythonAttrs (old: {
+                buildInputs = (old.buildInputs or [ ]) ++ [ prev.poetry-core ];
+              });
+            }
+          );
+        };
+      }
+    );
 }
