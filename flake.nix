@@ -20,16 +20,17 @@
     flake-utils.lib.eachDefaultSystem (
       system:
       let
+        dependencies = [
+          pkgs.rmapi
+          pkgs.inkscape
+          pkgs.poetry
+        ];
+
         pkgs = nixpkgs.legacyPackages.${system};
         p2n = poetry2nix.lib.mkPoetry2Nix { inherit pkgs; };
-      in
-      {
-        devShells.default = pkgs.mkShell {
-          buildInputs = with pkgs; [
-            rmapi
-          ];
-        };
-        packages.default = p2n.mkPoetryApplication {
+
+        zot_x_rm = p2n.mkPoetryApplication {
+          buildInputs = dependencies;
           projectDir = ./.;
           preferWheels = true;
           overrides = p2n.overrides.withDefaults (
@@ -43,6 +44,14 @@
             }
           );
         };
+      in
+      {
+        devShells.default = pkgs.mkShell {
+          buildInputs = dependencies ++ [
+            zot_x_rm
+          ];
+        };
+        packages.default = zot_x_rm;
       }
     );
 }
