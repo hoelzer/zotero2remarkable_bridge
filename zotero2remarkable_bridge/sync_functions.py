@@ -114,35 +114,47 @@ def zotero_upload(pdf_path: Path, zot: Zotero):
     md_name = f"{pdf_path.stem} _obsidian.md"
     md_path = pdf_path.with_name(md_name)
 
-    annotated_name = f"(Annotated) {pdf_path.stem}{pdf_path.suffix}"
+    annotated_name = f"(Annotated) {pdf_path.stem}{pdf_path.suffix}"  # already has .pdf
     annotated_path = pdf_path.with_name(annotated_name)
-    logging.info(f"Have an annotated PDF {str(pdf_path)} to upload")
 
-    pdf_path.rename(str(annotated_path) + ".pdf")
+    logging.info(f"Have an annotated PDF {annotated_path} to upload")
+
+    # Rename to the annotated path (no extra .pdf!)
+    pdf_path.rename(annotated_path)
+
+    # Optional: guard to avoid confusing errors
+    if not annotated_path.exists():
+        logging.error(f"Annotated file not found after rename: {annotated_path}")
+        return
 
     for item in zot.items(tag="synced"):
-        already_uploaded_annotation = len([1 for tag in item["data"].get('tags') if tag["tag"] == "annotated"]) > 0
+        already_uploaded_annotation = any(
+            tag.get("tag") == "annotated" for tag in item["data"].get("tags", [])
+        )
         item_id = item["key"]
         item_name = item.get("data", {}).get("title") or item_id
+
         for attachment in zot.children(item_id):
+            # Match the original attachment by its current filename in Zotero
             if attachment["data"].get("filename", "") == pdf_path.name and not already_uploaded_annotation:
                 files_to_upload = [str(annotated_path)]
                 if md_path.exists():
                     files_to_upload.append(str(md_path))
 
                 upload = zot.attachment_simple(files_to_upload, item_id)
-                if upload.get("success") or upload.get('unchanged'):
-                    logging.info(f"{pdf_path} attached to Zotero item '{item_name}'.")
+                if upload.get("success") or upload.get("unchanged"):
+                    logging.info(f"{annotated_path.name} attached to Zotero item '{item_name}'.")
                     zot.add_tags(item, "annotated")
-                elif already_uploaded_annotation:
-                    logging.warning(f"Uploading {pdf_path} to Zotero item '{item_name}' failed")
+                else:
+                    logging.warning(f"Uploading {annotated_path.name} to Zotero item '{item_name}' failed")
                     logging.warning(f"Reason for upload failure: {upload.get('failure')}")
                 return
             elif already_uploaded_annotation:
                 return
 
     logging.warning(
-        f"Have an annotated PDF '{annotated_name}' to upload, but cannot find the appropriate item in Zotero")
+        f"Have an annotated PDF '{annotated_path.name}' to upload, but cannot find the appropriate item in Zotero"
+    )
 
 
 def get_md5(pdf) -> None | str:
